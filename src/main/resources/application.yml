@@ -1,0 +1,12 @@
+server:
+  port: 8099
+spring:
+  application:
+    name: isc
+
+isc:
+  uri: https://218.58.65.133:1443
+  previewurl: /api/video/v2/cameras/previewURLs
+  region: /api/irds/v2/region/nodesByParams
+  camera:
+    page: /api/resource/v2/camera/search
