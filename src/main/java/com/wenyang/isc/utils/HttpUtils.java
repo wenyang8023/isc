@@ -1,17 +1,14 @@
 package com.wenyang.isc.utils;
 
+import com.alibaba.fastjson.JSONObject;
 import java.io.IOException;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-
 import javax.net.ssl.SSLContext;
-
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpEntity;
@@ -23,25 +20,32 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.ssl.SSLContextBuilder;
-import org.apache.http.ssl.TrustStrategy;
 import org.apache.http.util.EntityUtils;
+import org.springframework.util.CollectionUtils;
 
 /**
  * 基于 httpclient 4.5版本的 http工具类
  *
  * @author wenyang
- *
  */
 @Slf4j
 public class HttpUtils {
 
     private static final CloseableHttpClient HTTP_CLIENT;
+
     private static final String CHARSET = "UTF-8";
+
+    /**
+     * application/json
+     */
+    public static final String APPLICATION_JSON = "application/json";
+
     // 采用静态代码块，初始化超时时间配置，再根据配置生成默认httpClient对象
     static {
         RequestConfig config = RequestConfig.custom().setConnectTimeout(60000).setSocketTimeout(15000).build();
@@ -56,12 +60,18 @@ public class HttpUtils {
         return doGetSSL(url, params, CHARSET);
     }
 
-    public static String doPost(String url, Map<String, String> params) throws IOException {
+    public static String doPost(String url, Map<String, Object> params) throws IOException {
         return doPost(url, params, CHARSET);
     }
 
+    public static String doPostSSL(String url, Map<String, Object> params) throws IOException {
+        return doPostSSL(url, params, CHARSET);
+    }
+
+
     /**
      * HTTP Get 获取内容
+     *
      * @param url 请求的url地址 ?之前的地址
      * @param params 请求的参数
      * @param charset 编码格式
@@ -107,33 +117,27 @@ public class HttpUtils {
 
     /**
      * HTTP Post 获取内容
+     *
      * @param url 请求的url地址 ?之前的地址
      * @param params 请求的参数
      * @param charset 编码格式
      * @return 页面内容
      * @throws IOException
      */
-    public static String doPost(String url, Map<String, String> params, String charset)
-            throws IOException {
-        if (StringUtils.isBlank(url)) {
+    public static String doPost(String url, Map<String, Object> params, String charset) throws IOException {
+        if (StringUtils.isBlank(url) || CollectionUtils.isEmpty(params)) {
             return null;
         }
-        List<NameValuePair> pairs = null;
-        if (params != null && !params.isEmpty()) {
-            pairs = new ArrayList<NameValuePair>(params.size());
-            for (Map.Entry<String, String> entry : params.entrySet()) {
-                String value = entry.getValue();
-                if (value != null) {
-                    pairs.add(new BasicNameValuePair(entry.getKey(), value));
-                }
-            }
-        }
+
         HttpPost httpPost = new HttpPost(url);
-        if (pairs != null && pairs.size() > 0) {
-            httpPost.setEntity(new UrlEncodedFormEntity(pairs, charset));
-        }
-        log.info("url:" + url);
-        log.info("entity:" + httpPost.getEntity());
+        httpPost.addHeader("Content-Type", APPLICATION_JSON);
+
+        String jsonParam = JSONObject.toJSONString(params);
+        StringEntity stringEntity = new StringEntity(jsonParam, charset);
+        stringEntity.setContentType(APPLICATION_JSON);
+        httpPost.setEntity(stringEntity);
+        log.info("请求{}接口的参数为{}", url, jsonParam);
+
         CloseableHttpResponse response = null;
         try {
             response = HTTP_CLIENT.execute(httpPost);
@@ -161,9 +165,10 @@ public class HttpUtils {
 
     /**
      * HTTPS Get 获取内容
+     *
      * @param url 请求的url地址 ?之前的地址
      * @param params 请求的参数
-     * @param charset  编码格式
+     * @param charset 编码格式
      * @return 页面内容
      */
     public static String doGetSSL(String url, Map<String, String> params, String charset) {
@@ -194,7 +199,7 @@ public class HttpUtils {
             HttpEntity entity = response.getEntity();
             String result = null;
             if (entity != null) {
-                result = EntityUtils.toString(entity, "utf-8");
+                result = EntityUtils.toString(entity, charset);
             }
             EntityUtils.consume(entity);
             response.close();
@@ -205,18 +210,56 @@ public class HttpUtils {
         return null;
     }
 
+    public static String doPostSSL(String url, Map<String, Object> params, String charset) throws IOException {
+        if (StringUtils.isBlank(url) || CollectionUtils.isEmpty(params)) {
+            return null;
+        }
+
+        HttpPost httpPost = new HttpPost(url);
+        httpPost.addHeader("Content-Type", APPLICATION_JSON);
+
+        String jsonParam = JSONObject.toJSONString(params);
+        StringEntity stringEntity = new StringEntity(jsonParam, charset);
+        stringEntity.setContentType(APPLICATION_JSON);
+        httpPost.setEntity(stringEntity);
+        log.info("请求{}接口的参数为{}", url, jsonParam);
+
+        CloseableHttpResponse response = null;
+        try {
+            // https  注意这里获取https内容，使用了忽略证书的方式，当然还有其他的方式来获取https内容
+            CloseableHttpClient httpsClient = HttpUtils.createSSLClientDefault();
+            response = httpsClient.execute(httpPost);
+            int statusCode = response.getStatusLine().getStatusCode();
+            if (statusCode != 200) {
+                httpPost.abort();
+                throw new RuntimeException("HttpClient,error status code :" + statusCode);
+            }
+            HttpEntity entity = response.getEntity();
+            String result = null;
+            if (entity != null) {
+                result = EntityUtils.toString(entity, charset);
+            }
+            EntityUtils.consume(entity);
+            return result;
+        } catch (ParseException e) {
+            e.printStackTrace();
+        } finally {
+            if (response != null) {
+                response.close();
+            }
+        }
+        return null;
+    }
+
     /**
      * 这里创建了忽略整数验证的CloseableHttpClient对象
+     *
      * @return
      */
     public static CloseableHttpClient createSSLClientDefault() {
         try {
-            SSLContext sslContext = new SSLContextBuilder().loadTrustMaterial(null, new TrustStrategy() {
-                // 信任所有
-                public boolean isTrusted(X509Certificate[] chain, String authType) throws CertificateException {
-                    return true;
-                }
-            }).build();
+            // 信任所有
+            SSLContext sslContext = new SSLContextBuilder().loadTrustMaterial(null, (chain, authType) -> true).build();
             SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(sslContext);
             return HttpClients.custom().setSSLSocketFactory(sslsf).build();
         } catch (KeyManagementException e) {
