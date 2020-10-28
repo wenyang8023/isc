@@ -2,13 +2,11 @@ package com.wenyang.isc.service;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.wenyang.isc.utils.HttpUtils;
+import com.wenyang.isc.utils.ArtemisUtils;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -74,19 +72,12 @@ public class CameraService {
      */
     public JSONObject getCameraPage(Integer pageNo, Integer pageSize) {
 
-        String url = uri + cameraPage;
-        Map<String, Object> map = new HashMap<>();
-        map.put("pageNo", pageNo);
-        map.put("pageSize", pageSize);
+        JSONObject jsonBody = new JSONObject();
+        jsonBody.put("pageNo", pageNo);
+        jsonBody.put("pageSize", pageSize);
+        String body = jsonBody.toJSONString();
 
-        String result = null;
-        try {
-            result = HttpUtils.doPostSSL(url, map);
-        } catch (IOException e) {
-            log.error("查询监控点列表失败,error={}", ExceptionUtils.getStackTrace(e));
-            throw new RuntimeException("查询监控点列表失败！");
-        }
-
+        String result = ArtemisUtils.doPostStringArtemis(cameraPage, body);
         return getData(result);
     }
 
@@ -95,20 +86,13 @@ public class CameraService {
      */
     public JSONObject getRegionCamera(String regionIndexCode, Integer pageNo, Integer pageSize) {
 
-        String url = uri + regionCamera;
-        Map<String, Object> map = new HashMap<>();
-        map.put("regionIndexCode", regionIndexCode);
-        map.put("pageNo", pageNo);
-        map.put("pageSize", pageSize);
+        JSONObject jsonBody = new JSONObject();
+        jsonBody.put("regionIndexCode", regionIndexCode);
+        jsonBody.put("pageNo", pageNo);
+        jsonBody.put("pageSize", pageSize);
+        String body = jsonBody.toJSONString();
 
-        String result = null;
-        try {
-            result = HttpUtils.doPostSSL(url, map);
-        } catch (IOException e) {
-            log.error("根据区域编号获取下级监控点列表失败,error={}", ExceptionUtils.getStackTrace(e));
-            throw new RuntimeException("根据区域编号获取下级监控点列表失败！");
-        }
-
+        String result = ArtemisUtils.doPostStringArtemis(regionCamera, body);
         return getData(result);
     }
 
@@ -118,11 +102,15 @@ public class CameraService {
      */
     public String getPreviewURL(String cameraIndexCode) {
 
-        String url = uri + previewUrl;
-        Map<String, String> map = new HashMap<>();
-        map.put("cameraIndexCode", cameraIndexCode);
+        JSONObject jsonBody = new JSONObject();
+        jsonBody.put("cameraIndexCode", cameraIndexCode);
+        jsonBody.put("streamType", 0);
+        jsonBody.put("protocol", "rtsp");
+        jsonBody.put("transmode", 1);
+        jsonBody.put("expand", "streamform=ps");
+        String body = jsonBody.toJSONString();
 
-        String result = HttpUtils.doGetSSL(url, map);
+        String result = ArtemisUtils.doPostStringArtemis(previewUrl, body);
 
         JSONObject jsonObject = JSONObject.parseObject(result);
         String code = jsonObject.getString("code");
