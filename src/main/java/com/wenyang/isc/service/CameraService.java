@@ -1,6 +1,5 @@
 package com.wenyang.isc.service;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.wenyang.isc.utils.HttpUtils;
@@ -16,7 +15,6 @@ import java.util.Map;
 /**
  * @author wenyang
  * @date 2020/10/27
- * @description
  */
 @Service
 @Slf4j
@@ -35,35 +33,36 @@ public class CameraService {
     private String cameraPage;
 
     @Value("${isc.region.code.wsgc}")
-    private String WSGC;
+    private String wsgc;
 
     @Value("${isc.region.code.zq}")
-    private String ZQ;
+    private String zq;
 
     /**
      * 默认分页
      */
-    final private static Integer PAGENO = 1;
+    final private static Integer PAGE_NO = 1;
 
     /**
      * 默认分页数量
      */
-    final private static Integer PAGESIZE = 100;
+    final private static Integer PAGE_SIZE = 100;
 
     public Map<String, Object> execute() {
 
-        String[] regionArr = new String[]{WSGC, ZQ};
+        String[] regionArr = new String[]{wsgc, zq};
         Map<String, Object> resultMap = new HashMap<>();
 
         for (String region : regionArr) {
 
-            JSONObject wsgcCamera = getRegionCamera(region, PAGENO, PAGESIZE);
+            JSONObject wsgcCamera = getRegionCamera(region, PAGE_NO, PAGE_SIZE);
             String total = wsgcCamera.getString("total");
             JSONArray list = wsgcCamera.getJSONArray("list");
             for (int i = 0; i < list.size(); i++) {
                 JSONObject jsonObject = list.getJSONObject(i);
                 String cameraIndexCode = jsonObject.getString("cameraIndexCode");
-                resultMap.put(cameraIndexCode, getPreviewURL(cameraIndexCode));
+                String cameraName = jsonObject.getString("cameraName");
+                resultMap.put(cameraIndexCode + "_" + cameraName, getPreviewURL(cameraIndexCode));
             }
         }
         return resultMap;
@@ -125,7 +124,13 @@ public class CameraService {
 
         String result = HttpUtils.doGetSSL(url, map);
 
-        JSONObject data = getData(result);
+        JSONObject jsonObject = JSONObject.parseObject(result);
+        String code = jsonObject.getString("code");
+        if (!"0".equals(code)) {
+            return jsonObject.getString("msg");
+        }
+
+        JSONObject data = jsonObject.getJSONObject("data");
         return data.getString("url");
     }
 
