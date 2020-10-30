@@ -24,17 +24,21 @@ public class CameraService {
     @Value("${isc.url.preview}")
     private String previewUrl;
 
+    @Value("${isc.url.region}")
+    private String region;
+
+    @Value("${isc.url.sub_region}")
+    private String subRegion;
+
     @Value("${isc.url.region_camera}")
     private String regionCamera;
 
     @Value("${isc.url.page_camera}")
     private String cameraPage;
 
-    @Value("${isc.region.code.wsgc}")
-    private String wsgc;
-
-    @Value("${isc.region.code.zq}")
-    private String zq;
+    /** 青岛城管 市南区 */
+    @Value("${isc.region.code.snq}")
+    private String snq;
 
     /**
      * 默认分页
@@ -48,22 +52,48 @@ public class CameraService {
 
     public Map<String, Object> execute() {
 
-        String[] regionArr = new String[]{wsgc, zq};
         Map<String, Object> resultMap = new HashMap<>();
 
-        for (String region : regionArr) {
-
-            JSONObject wsgcCamera = getRegionCamera(region, PAGE_NO, PAGE_SIZE);
-            String total = wsgcCamera.getString("total");
-            JSONArray list = wsgcCamera.getJSONArray("list");
-            for (int i = 0; i < list.size(); i++) {
-                JSONObject jsonObject = list.getJSONObject(i);
-                String cameraIndexCode = jsonObject.getString("cameraIndexCode");
-                String cameraName = jsonObject.getString("cameraName");
-                resultMap.put(cameraIndexCode + "_" + cameraName, getPreviewURL(cameraIndexCode));
-            }
+        JSONObject wsgcCamera = getRegionCamera(snq, PAGE_NO, PAGE_SIZE);
+        String total = wsgcCamera.getString("total");
+        JSONArray list = wsgcCamera.getJSONArray("list");
+        for (int i = 0; i < list.size(); i++) {
+            JSONObject jsonObject = list.getJSONObject(i);
+            String cameraIndexCode = jsonObject.getString("cameraIndexCode");
+            String cameraName = jsonObject.getString("name");
+            resultMap.put(cameraIndexCode + "_" + cameraName, getPreviewURL(cameraIndexCode));
         }
         return resultMap;
+    }
+
+    /**
+     * 查询区域列表
+     */
+    public JSONObject getRegionPage(Integer pageNo, Integer pageSize) {
+
+        JSONObject jsonBody = new JSONObject();
+        jsonBody.put("resourceType", "region");
+        jsonBody.put("treeCode", "0");
+        jsonBody.put("pageNo", pageNo);
+        jsonBody.put("pageSize", pageSize);
+        String body = jsonBody.toJSONString();
+
+        String result = ArtemisUtils.doPostStringArtemis(region, body);
+        return getData(result);
+    }
+
+    /**
+     * 根据区域编号获取下一级区域列表
+     */
+    public JSONObject getSubRegions(String parentIndexCode) {
+
+        JSONObject jsonBody = new JSONObject();
+        jsonBody.put("parentIndexCode", parentIndexCode);
+        jsonBody.put("treeCode", "0");
+        String body = jsonBody.toJSONString();
+
+        String result = ArtemisUtils.doPostStringArtemis(subRegion, body);
+        return getData(result);
     }
 
 

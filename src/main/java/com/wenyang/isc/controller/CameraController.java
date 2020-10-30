@@ -39,6 +39,18 @@ public class CameraController {
         return Result.success(cameraService.getRegionCamera(regionIndexCode, pageNo, pageSize));
     }
 
+    @GetMapping("/region/page")
+    public Result<JSONObject> getRegionPage(@RequestParam("pageNo") Integer pageNo, @RequestParam("pageSize") Integer pageSize) {
+
+        return Result.success(cameraService.getRegionPage(pageNo, pageSize));
+    }
+
+    @GetMapping("/region/sub/{parentIndexCode}")
+    public Result<JSONObject> getRegionPage(@PathVariable(value = "parentIndexCode") String parentIndexCode) {
+
+        return Result.success(cameraService.getSubRegions(parentIndexCode));
+    }
+
     @GetMapping("/preview/{cameraIndexCode}")
     public Result<String> getPreviewURL(@PathVariable(value = "cameraIndexCode") String cameraIndexCode) {
 

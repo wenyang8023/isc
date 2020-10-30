@@ -8,16 +8,18 @@ isc:
   uri: https://218.58.65.133:1443
   url:
     # 获取监控点预览取流URLv2
-    preview: /api/video/v2/cameras/previewURLs
+#    preview: /api/video/v2/cameras/previewURLs
+    preview: /api/video/v1/cameras/previewURLs
     # 查询区域列表v2
-    region: /api/irds/v2/region/nodesByParams
+#    region: /api/irds/v2/region/nodesByParams
+    region: /api/resource/v1/regions
+    # 根据区域编号获取下一级区域列表
+    sub_region: /api/resource/v1/regions/subRegions
     # 根据区域编号获取下级监控点列表
     region_camera: /api/resource/v1/regions/regionIndexCode/cameras
     # 查询监控点列表v2
     page_camera: /api/resource/v2/camera/search
   region:
     code:
-      # 五四广场
-      wsgc: 37020000001310272140
-      # 栈桥
-      zq: 37020000001310077955
+      # 青岛城管 市南区
+      snq: 1a4b1968a84943c087ae80c69bda84b9
