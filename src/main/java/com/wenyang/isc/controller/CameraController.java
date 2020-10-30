@@ -3,12 +3,10 @@ package com.wenyang.isc.controller;
 import com.alibaba.fastjson.JSONObject;
 import com.wenyang.isc.bean.Result;
 import com.wenyang.isc.service.CameraService;
-import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 
-import javax.swing.plaf.synth.Region;
+import java.util.Map;
 
 /**
  * @author wenyang

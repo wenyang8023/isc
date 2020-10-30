@@ -1,8 +1,8 @@
 package com.wenyang.isc.utils;
 
-import com.alibaba.fastjson.JSONObject;
 import com.hikvision.artemis.sdk.ArtemisHttpUtil;
 import com.hikvision.artemis.sdk.config.ArtemisConfig;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -12,6 +12,7 @@ import java.util.Map;
  * @date 2020/10/28
  * @description
  */
+@Slf4j
 public class ArtemisUtils {
 
     static {
@@ -65,6 +66,8 @@ public class ArtemisUtils {
         /**
          * STEP6：调用接口
          */
+
+        log.info("host:{}, path:{}, param:{}", ArtemisConfig.host, path, paramBody);
         return ArtemisHttpUtil.doPostStringArtemis(path, paramBody, null, null, contentType , null);
     }
 
