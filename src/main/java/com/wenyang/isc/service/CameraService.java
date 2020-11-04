@@ -61,7 +61,9 @@ public class CameraService {
             JSONObject jsonObject = list.getJSONObject(i);
             String cameraIndexCode = jsonObject.getString("cameraIndexCode");
             String cameraName = jsonObject.getString("name");
-            resultMap.put(cameraIndexCode + "_" + cameraName, getPreviewURL(cameraIndexCode));
+            if (cameraName.contains("栈桥") || cameraName.contains("五四广场")) {
+                resultMap.put(cameraIndexCode + "_" + cameraName, getPreviewURL(cameraIndexCode));
+            }
         }
         return resultMap;
     }
@@ -137,7 +139,7 @@ public class CameraService {
         jsonBody.put("streamType", 0);
         jsonBody.put("protocol", "rtsp");
         jsonBody.put("transmode", 1);
-        jsonBody.put("expand", "streamform=ps");
+        jsonBody.put("expand", "streamform=rtp");
         String body = jsonBody.toJSONString();
 
         String result = ArtemisUtils.doPostStringArtemis(previewUrl, body);
