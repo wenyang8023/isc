@@ -68,6 +68,22 @@ public class CameraService {
         return resultMap;
     }
 
+    public Map<String, Object> execute(String region) {
+
+        Map<String, Object> resultMap = new HashMap<>();
+
+        JSONObject wsgcCamera = getRegionCamera(region, PAGE_NO, PAGE_SIZE);
+        String total = wsgcCamera.getString("total");
+        JSONArray list = wsgcCamera.getJSONArray("list");
+        for (int i = 0; i < list.size(); i++) {
+            JSONObject jsonObject = list.getJSONObject(i);
+            String cameraIndexCode = jsonObject.getString("cameraIndexCode");
+            String cameraName = jsonObject.getString("name");
+            resultMap.put(cameraIndexCode + "_" + cameraName, getPreviewURL(cameraIndexCode));
+        }
+        return resultMap;
+    }
+
     /**
      * 查询区域列表
      */

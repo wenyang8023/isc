@@ -62,4 +62,10 @@ public class CameraController {
 
         return Result.success(cameraService.execute());
     }
+
+    @GetMapping("/execute/region/{region}")
+    public Result<Map<String, Object>> execute(@PathVariable("region") String region) {
+
+        return Result.success(cameraService.execute(region));
+    }
 }
