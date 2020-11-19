@@ -6,6 +6,7 @@ import com.wenyang.isc.service.CameraService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -58,7 +59,7 @@ public class CameraController {
     }
 
     @GetMapping("/execute")
-    public Result<Map<String, Object>> execute() {
+    public Result<List<JSONObject>> execute() {
 
         return Result.success(cameraService.execute());
     }

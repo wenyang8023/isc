@@ -7,7 +7,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -50,9 +52,9 @@ public class CameraService {
      */
     final private static Integer PAGE_SIZE = 100;
 
-    public Map<String, Object> execute() {
+    public List<JSONObject> execute() {
 
-        Map<String, Object> resultMap = new HashMap<>();
+        List<JSONObject> resultList = new ArrayList<>();
 
         JSONObject wsgcCamera = getRegionCamera(snq, PAGE_NO, PAGE_SIZE);
         String total = wsgcCamera.getString("total");
@@ -62,10 +64,14 @@ public class CameraService {
             String cameraIndexCode = jsonObject.getString("cameraIndexCode");
             String cameraName = jsonObject.getString("name");
             if (cameraName.contains("栈桥") || cameraName.contains("五四广场")) {
-                resultMap.put(cameraIndexCode + "_" + cameraName, getPreviewURL(cameraIndexCode));
+                JSONObject json = new JSONObject();
+                json.put("name", cameraName);
+                json.put("url", getPreviewURL(cameraIndexCode));
+                resultList.add(json);
             }
         }
-        return resultMap;
+        log.info("result:{}", resultList);
+        return resultList;
     }
 
     public Map<String, Object> execute(String region) {
