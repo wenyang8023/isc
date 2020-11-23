@@ -74,9 +74,9 @@ public class CameraService {
         return resultList;
     }
 
-    public Map<String, Object> execute(String region) {
+    public List<JSONObject> execute(String region) {
 
-        Map<String, Object> resultMap = new HashMap<>();
+        List<JSONObject> resultList = new ArrayList<>();
 
         JSONObject wsgcCamera = getRegionCamera(region, PAGE_NO, PAGE_SIZE);
         String total = wsgcCamera.getString("total");
@@ -85,9 +85,12 @@ public class CameraService {
             JSONObject jsonObject = list.getJSONObject(i);
             String cameraIndexCode = jsonObject.getString("cameraIndexCode");
             String cameraName = jsonObject.getString("name");
-            resultMap.put(cameraIndexCode + "_" + cameraName, getPreviewURL(cameraIndexCode));
+            JSONObject json = new JSONObject();
+            json.put("name", cameraName);
+            json.put("url", getPreviewURL(cameraIndexCode));
+            resultList.add(json);
         }
-        return resultMap;
+        return resultList;
     }
 
     /**

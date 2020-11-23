@@ -65,7 +65,7 @@ public class CameraController {
     }
 
     @GetMapping("/execute/region/{region}")
-    public Result<Map<String, Object>> execute(@PathVariable("region") String region) {
+    public Result<List<JSONObject>> execute(@PathVariable("region") String region) {
 
         return Result.success(cameraService.execute(region));
     }
